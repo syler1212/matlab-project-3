@@ -67,7 +67,6 @@ figure('Name', 'Project 2b: Anti-Tumor Treatment Comparison', 'Position', [100, 
 plot(t, N1, 'b-', 'LineWidth', 2);
 hold on;
 plot(t, N2, 'r--', 'LineWidth', 2);
-xline(40, 'k:', 'LineWidth', 1.5, 'Label', 'Treatment Starts (Day 40)');
 xlabel('Time (Days)');
 ylabel('Tumor Cell Count ($N$)', 'Interpreter', 'latex');
 legend('Treatment ($c = 0.1$)', 'Treatment ($c = 0.2$)', 'Location', 'NorthWest', 'Interpreter', 'latex');
