@@ -5,18 +5,37 @@ k = 0.192;                  % Base tumor growth rate constant
 alpha = 5.85;               % Stimulatory factor (vascular growth driven by tumor cells)
 beta = 0.00873;             % Inhibitory factor (vascular limitation based on carrying capacity and surface area)
 
+% Set up time grid for Euler's method (80 days with a 0.01-day step size)
+dt = 0.01;
+t = 0:dt:80;
+num_steps = length(t);
+
+% Preallocate arrays for tumor cells (N) and dynamic carrying capacity (M)
+N = zeros(1, num_steps);
+M = zeros(1, num_steps);
+
 % Initial conditions: start with 1 tumor cell and a carrying capacity of 1
-y0 = [1; 1]; 
+N(1) = 1;
+M(1) = 1;
 
-% Run the simulation across an 80-day time span
-tspan = [0 80];
-
-%% Solve the coupled differential equations using ode45
-[t, y] = ode45(@(t, y) tumor_ode_sys(t, y, k, alpha, beta), tspan, y0);
-
-% Extract tumor cell population (N) and dynamic carrying capacity (M) from the results
-N = y(:, 1);
-M = y(:, 2);
+%% Solve the coupled differential equations using Euler's Method
+for i = 1:(num_steps - 1)
+    % Small safety floor to prevent division by zero or log errors if N drops
+    if N(i) <= 0
+        N(i) = 1e-5;
+    end
+    
+    % Assume a spherical tumor, meaning surface area scales with N^(2/3)
+    surface_area = N(i)^(2/3);
+    
+    % Calculate instantaneous rates of change at the current step
+    dNdt = k * N(i) * log(M(i) / N(i));
+    dMdt = (alpha * N(i)) - (beta * M(i) * surface_area);
+    
+    % Step forward in time using Euler's update rule
+    N(i + 1) = N(i) + dNdt * dt;
+    M(i + 1) = M(i) + dMdt * dt;
+end
 
 %% Calculate the per capita growth rate over time
 % Derived from the Gompertz equation: (1/N)*(dN/dt) = k * ln(M / N)
@@ -40,26 +59,3 @@ xlabel('Time (Days)');
 ylabel('Per Capita Growth Rate $\frac{1}{N}\frac{dN}{dt}$', 'Interpreter', 'latex');
 title('Per Capita Growth Rate vs. Time');
 grid on;
-
-%% Helper Function: Defines the system of ODEs
-function dydt = tumor_ode_sys(~, y, k, alpha, beta)
-    N = y(1);
-    M = y(2);
-    
-    % Small safety floor to prevent division by zero or log errors if N drops
-    if N <= 0
-        N = 1e-5;
-    end
-    
-    % Assume a spherical tumor, meaning surface area scales with N^(2/3)
-    surface_area = N^(2/3);
-    
-    % Rate of change for tumor cells based on dynamic carrying capacity M
-    dNdt = k * N * log(M / N);
-    
-    % Rate of change for carrying capacity M (vascular stimulation minus inhibition)
-    dMdt = (alpha * N) - (beta * M * surface_area);
-    
-    % Return the derivatives as a column vector for ode45
-    dydt = [dNdt; dMdt];
-end
