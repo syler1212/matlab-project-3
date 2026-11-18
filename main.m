@@ -2,19 +2,19 @@ clear; close all;
 
 %% 1. Model Parameters
 % Set up the core parameters for the cellular automaton simulation from Project 1.a.
-n = 101;      % Grid dimension (101x101 lattice with an odd center point)[cite: 5]
-k1 = 0.74;    % Base proliferation rate for cancer cells when nutrients are unlimited[cite: 4, 5]
-k2 = 0.2;     % Probability that an immune effector cell binds to a resting cancer cell[cite: 5]
-k3 = 0.4;     % Probability that an immune-cancer complex breaks down into a dead cell[cite: 5]
-k4 = 0.4;     % Probability that a healthy normal cell takes over a dead cell site[cite: 5]
-dc = 2.85;    % Critical density threshold controlling whether pressure allows 4-way or restricted growth[cite: 4, 5]
-phi = 1000;   % Carrying capacity (avascular nutrient limit where division stops)[cite: 4, 5]
-steps = 300;  % Total simulation duration in time steps[cite: 5]
+n = 101;      % Grid dimension (101x101 lattice with an odd center point)
+k1 = 0.74;    % Base proliferation rate for cancer cells when nutrients are unlimited
+k2 = 0.2;     % Probability that an immune effector cell binds to a resting cancer cell
+k3 = 0.4;     % Probability that an immune-cancer complex breaks down into a dead cell
+k4 = 0.4;     % Probability that a healthy normal cell takes over a dead cell site
+dc = 2.85;    % Critical density threshold controlling whether pressure allows 4-way or restricted growth
+phi = 1000;   % Carrying capacity (avascular nutrient limit where division stops)
+steps = 300; % Total simulation duration in time steps
 
 %% 2. Grid Initialization
 % Create a blank 101x101 grid representing normal healthy tissue (state 0).
 grid = zeros(n, n);
-center = ceil(n / 2); % Find the exact center coordinate (row/col 51)[cite: 5]
+center = ceil(n / 2); % Find the exact center coordinate (row/col 51)
 
 % Plant the initial seed: a small cross of 5 abnormal (cancerous) cells in the middle.
 grid(center, center) = 1;
@@ -42,8 +42,22 @@ fig = figure('Name', 'Avascular Tumor Growth Simulation', 'Position', [100, 100,
 
 subplot(1, 2, 1);
 h_im = imagesc(grid);
-colormap(cool);
-colorbar;
+
+% Define a custom 4-color discrete colormap for states 0, 1, 2, and 3
+cmap = [
+    0.92, 0.96, 0.98;   % 0: Healthy normal tissue (very light blue-gray)
+    0.85, 0.20, 0.20;   % 1: Abnormal / cancerous cell (bright red)
+    0.95, 0.65, 0.10;   % 2: Immune-cancer complex (orange-gold)
+    0.25, 0.25, 0.30    % 3: Dead cell (dark slate gray)
+];
+colormap(gca, cmap);
+clim([-0.5, 3.5]); % Center each integer state inside its own color band
+
+% Format colorbar with discrete tick labels
+cb = colorbar;
+cb.Ticks = [0, 1, 2, 3];
+cb.TickLabels = {'0: Healthy', '1: Cancer', '2: Complex', '3: Dead'};
+
 title('Tumor Growth Animation');
 axis square;
 
@@ -89,7 +103,7 @@ end
 close(vidObj);
 
 %% 7. Radius vs. Time Plot
-% Plot how the average radius of the tumor expands over the 300 steps.
+% Plot how the average radius of the tumor expands over the simulation steps.
 figure('Name', 'Average Radius R');
 plot(time_vec, R_vec, 'k-', 'LineWidth', 1.5);
 xlabel('Time Steps');
@@ -98,11 +112,11 @@ title('Average Tumor Radius vs. Time');
 grid on;
 
 %% 8. Part b: Gompertz Curve Fitting & Comparison
-% Compare the simulation results against the empirical Gompertz growth model[cite: 5].
-N0 = 5;          % Starting number of abnormal cells[cite: 5]
-k_gompertz = 0.05; % Tuned growth constant to match early simulation trajectory (adjust as needed)[cite: 5]
+% Compare the simulation results against the empirical Gompertz growth model.
+N0 = 5;            % Starting number of abnormal cells
+k_gompertz = 0.05; % Tuned growth constant to match early simulation trajectory (adjust as needed)
 
-% Compute the theoretical Gompertz population curve over time[cite: 5]
+% Compute the theoretical Gompertz population curve over time
 t_vec = 1:steps;
 N_gompertz = phi * exp(log(N0 / phi) * exp(-k_gompertz * t_vec));
 
